@@ -1,778 +1,344 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Card Generator</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>💳 Create Card</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: #0f0f1a;
-    min-height: 100vh;
-    color: #e2e8f0;
-    padding: 30px 20px;
-  }
-
-  h1 {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 40px;
-  }
-
-  .main-layout {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 32px;
-    align-items: start;
-  }
-
-  @media(max-width: 820px) { .main-layout { grid-template-columns: 1fr; } }
-
-  /* ───── CARD PREVIEW ───── */
-  .preview-section { display: flex; flex-direction: column; gap: 16px; }
-
-  .card-wrapper {
-    perspective: 1000px;
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  .card-inner {
-    position: relative;
-    width: 100%;
-    padding-top: 62%;
-    border-radius: 22px;
-    transition: transform 0.7s cubic-bezier(.4,0,.2,1);
-    transform-style: preserve-3d;
-  }
-
-  .card-inner.flipped { transform: rotateY(180deg); }
-
-  .card-front, .card-back {
-    position: absolute;
-    inset: 0;
-    border-radius: 22px;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.6);
-  }
-
-  .card-back { transform: rotateY(180deg); }
-
-  .theme-violet  { background: linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#7c3aed 100%); }
-  .theme-ocean   { background: linear-gradient(135deg,#0c4a6e 0%,#0369a1 50%,#0ea5e9 100%); }
-  .theme-gold    { background: linear-gradient(135deg,#78350f 0%,#b45309 50%,#f59e0b 100%); }
-  .theme-rose    { background: linear-gradient(135deg,#881337 0%,#be123c 50%,#fb7185 100%); }
-  .theme-slate   { background: linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%); }
-  .theme-emerald { background: linear-gradient(135deg,#064e3b 0%,#047857 50%,#10b981 100%); }
-  .theme-midnight{ background: linear-gradient(135deg,#020617 0%,#0f172a 50%,#1e3a5f 100%); }
-  .theme-crimson { background: linear-gradient(135deg,#3b0764 0%,#6d28d9 50%,#db2777 100%); }
-
-  .card-front::after, .card-back::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 22px;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-    opacity: 0.18;
-    pointer-events: none;
-  }
-
-  .card-front::before {
-    content: '';
-    position: absolute;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.13) 0%, transparent 70%);
-    top: -90px; right: -90px;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .bank-name {
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: rgba(255,255,255,0.95);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  }
-
-  .card-badges { display: flex; gap: 6px; align-items: center; flex-direction: column; align-items: flex-end; }
-
-  .card-type-badge {
-    font-size: 0.55rem;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.75);
-    background: rgba(255,255,255,0.15);
-    padding: 3px 8px;
-    border-radius: 20px;
-    backdrop-filter: blur(4px);
-  }
-
-  .tier-badge {
-    font-size: 0.5rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #fbbf24;
-    background: rgba(251,191,36,0.15);
-    border: 1px solid rgba(251,191,36,0.3);
-    padding: 2px 7px;
-    border-radius: 20px;
-  }
-
-  .chip {
-    width: 44px; height: 34px;
-    background: linear-gradient(135deg, #f0d060 0%, #c8a020 40%, #f0d060 60%, #c8a020 100%);
-    border-radius: 6px;
-    margin: 12px 0 10px;
-    position: relative;
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3);
-  }
-  .chip::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    width: 28px; height: 20px;
-    border: 1.5px solid rgba(0,0,0,0.25);
-    border-radius: 3px;
-  }
-  .chip::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 0; right: 0;
-    border-top: 1.5px solid rgba(0,0,0,0.2);
-    transform: translateY(-50%);
-  }
-
-  .contactless {
-    width: 20px; height: 20px;
-    position: absolute;
-    top: 14px; right: 22px;
-    opacity: 0.65;
-  }
-
-  .card-number {
-    font-family: 'Inconsolata', monospace;
-    font-size: 1.2rem;
-    letter-spacing: 3px;
-    color: rgba(255,255,255,0.95);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    margin-bottom: 12px;
-    display: flex;
-    gap: 10px;
-  }
-
-  .card-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-
-  .card-label {
-    font-size: 0.5rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 2px;
-  }
-
-  .card-value {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.95);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .network-logo { display: flex; align-items: center; gap: 4px; }
-
-  .visa-logo {
-    font-family: 'Times New Roman', serif;
-    font-size: 1.5rem;
-    font-weight: 900;
-    font-style: italic;
-    color: white;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    letter-spacing: -1px;
-  }
-
-  .mc-circle { width: 26px; height: 26px; border-radius: 50%; }
-  .mc-left  { background: #eb001b; opacity: 0.9; margin-right: -9px; }
-  .mc-right { background: #f79e1b; opacity: 0.9; }
-
-  .amex-logo {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: white;
-    background: rgba(255,255,255,0.2);
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-
-  /* Back */
-  .mag-strip {
-    height: 38px;
-    background: linear-gradient(180deg,#111 0%,#333 50%,#111 100%);
-    margin: 0 -24px;
-    margin-top: 28px;
-    margin-bottom: 14px;
-  }
-
-  .signature-strip {
-    background: linear-gradient(90deg,#f0f0f0 0%,#e0e0e0 100%);
-    height: 42px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-
-  .sig-lines { flex: 1; display: flex; flex-direction: column; gap: 4px; padding-right: 12px; }
-  .sig-line { height: 2px; background: repeating-linear-gradient(90deg,#ccc 0,#ccc 4px,white 4px,white 8px); }
-
-  .cvv-box {
-    background: white;
-    color: #111;
-    font-family: 'Inconsolata', monospace;
-    font-size: 1.05rem;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 4px;
-    letter-spacing: 3px;
-    min-width: 50px;
-    text-align: center;
-  }
-
-  .back-network { display: flex; justify-content: flex-end; margin-top: auto; }
-
-  .hologram {
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg,#ff0080,#ff8c00,#ffff00,#00ff00,#00bfff,#8000ff,#ff0080);
-    opacity: 0.6;
-    filter: blur(1px);
-    position: absolute;
-    bottom: 18px; left: 22px;
-    animation: holo 3s linear infinite;
-  }
-  @keyframes holo { to { filter: hue-rotate(360deg) blur(1px); } }
-
-  .back-bank {
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 1px;
-    text-align: center;
-    margin-top: 6px;
-  }
-
-  /* ───── BALANCE PANEL ───── */
-  .balance-panel {
-    background: #1a1a2e;
-    border: 1px solid #2d2d4e;
-    border-radius: 14px;
-    padding: 18px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .balance-title {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #64748b;
-  }
-
-  .balance-main {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-  }
-
-  .balance-amount {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #e2e8f0;
-    font-family: 'Inconsolata', monospace;
-    letter-spacing: 1px;
-  }
-
-  .balance-currency {
-    font-size: 1rem;
-    color: #64748b;
-    font-weight: 600;
-  }
-
-  .balance-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .balance-stat {
-    background: #0f0f1a;
-    border: 1px solid #2d2d4e;
-    border-radius: 10px;
-    padding: 10px 12px;
-  }
-
-  .stat-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #475569;
-    margin-bottom: 4px;
-  }
-
-  .stat-value {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #e2e8f0;
-    font-family: 'Inconsolata', monospace;
-  }
-
-  .stat-value.green { color: #34d399; }
-  .stat-value.red   { color: #f87171; }
-  .stat-value.amber { color: #fbbf24; }
-
-  .spend-bar-wrap { margin-top: 2px; }
-  .spend-bar-label {
-    display: flex; justify-content: space-between;
-    font-size: 0.65rem; color: #475569; margin-bottom: 5px;
-  }
-  .spend-bar-track {
-    height: 6px; background: #1e293b; border-radius: 99px; overflow: hidden;
-  }
-  .spend-bar-fill {
-    height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg,#6366f1,#a855f7);
-    transition: width 0.4s ease;
-  }
-
-  /* ───── TRANSACTIONS ───── */
-  .txn-panel {
-    background: #1a1a2e;
-    border: 1px solid #2d2d4e;
-    border-radius: 14px;
-    padding: 18px 20px;
-  }
-
-  .txn-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-
-  .txn-title {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #64748b;
-  }
-
-  .btn-add-txn {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-    border-radius: 8px;
-    border: 1px solid #2d2d4e;
-    background: transparent;
-    color: #a5b4fc;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .btn-add-txn:hover { background: rgba(99,102,241,0.1); border-color: #6366f1; }
-
-  .txn-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
-  .txn-list::-webkit-scrollbar { width: 4px; }
-  .txn-list::-webkit-scrollbar-track { background: #0f0f1a; }
-  .txn-list::-webkit-scrollbar-thumb { background: #2d2d4e; border-radius: 2px; }
-
-  .txn-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    background: #0f0f1a;
-    border-radius: 10px;
-    border: 1px solid #1e293b;
-  }
-
-  .txn-icon {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-  }
-
-  .txn-info { flex: 1; min-width: 0; }
-  .txn-merchant { font-size: 0.82rem; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .txn-date { font-size: 0.65rem; color: #475569; }
-  .txn-amount { font-family: 'Inconsolata', monospace; font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
-
-  /* ───── CONTROLS ───── */
-  .right-col { display: flex; flex-direction: column; gap: 16px; }
-
-  .controls {
-    background: #1a1a2e;
-    border: 1px solid #2d2d4e;
-    border-radius: 16px;
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .section-title {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #6366f1;
-    margin-bottom: 2px;
-  }
-
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-
-  label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  input, select {
-    background: #0f0f1a;
-    border: 1px solid #2d2d4e;
-    border-radius: 10px;
-    color: #e2e8f0;
-    padding: 9px 13px;
-    font-size: 0.9rem;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    width: 100%;
-  }
-
-  input:focus, select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-  }
-
-  select option { background: #1a1a2e; }
-
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-  .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-  .type-btn {
-    padding: 9px;
-    border: 1.5px solid #2d2d4e;
-    border-radius: 10px;
-    background: transparent;
-    color: #64748b;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-  .type-btn.active { border-color: #6366f1; background: rgba(99,102,241,0.15); color: #a5b4fc; }
-
-  .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  .color-dot {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: transform 0.2s, border-color 0.2s;
-  }
-  .color-dot:hover { transform: scale(1.15); }
-  .color-dot.selected { border-color: white; transform: scale(1.15); }
-  .color-dot.violet   { background: linear-gradient(135deg,#4c1d95,#7c3aed); }
-  .color-dot.ocean    { background: linear-gradient(135deg,#0369a1,#0ea5e9); }
-  .color-dot.gold     { background: linear-gradient(135deg,#b45309,#f59e0b); }
-  .color-dot.rose     { background: linear-gradient(135deg,#be123c,#fb7185); }
-  .color-dot.slate    { background: linear-gradient(135deg,#1e293b,#334155); }
-  .color-dot.emerald  { background: linear-gradient(135deg,#047857,#10b981); }
-  .color-dot.midnight { background: linear-gradient(135deg,#020617,#1e3a5f); }
-  .color-dot.crimson  { background: linear-gradient(135deg,#6d28d9,#db2777); }
-
-  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-  .btn-generate {
-    padding: 11px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg,#6366f1,#a855f7);
-    color: white;
-    font-size: 0.92rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.2s, transform 0.1s;
-    letter-spacing: 0.5px;
-  }
-  .btn-generate:hover { opacity: 0.88; }
-  .btn-generate:active { transform: scale(0.98); }
-
-  .btn-outline {
-    padding: 11px;
-    border-radius: 12px;
-    border: 1.5px solid #2d2d4e;
-    background: transparent;
-    color: #94a3b8;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .btn-outline:hover { border-color: #6366f1; color: #a5b4fc; }
-
-  .flip-btn {
-    padding: 8px 16px;
-    border-radius: 10px;
-    border: 1px solid #2d2d4e;
-    background: #1a1a2e;
-    color: #94a3b8;
-    font-size: 0.82rem;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 6px;
-    margin: 0 auto;
-  }
-  .flip-btn:hover { border-color: #6366f1; color: #a5b4fc; }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: #1a1a2e;
-    border: 1px solid #2d2d4e;
-    border-radius: 16px;
-    padding: 28px;
-    width: 340px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .modal h3 { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
-
-  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-
-  .sep { height: 1px; background: #2d2d4e; }
-
-  input[type=range] {
-    -webkit-appearance: none;
-    height: 6px;
-    border-radius: 99px;
-    background: linear-gradient(90deg,#6366f1,#a855f7);
-    padding: 0;
-    border: none;
-    cursor: pointer;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: white;
-    cursor: pointer;
-    box-shadow: 0 0 4px rgba(0,0,0,0.4);
-  }
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#6366f1;--accent2:#a855f7;
+  --bg:#080810;--surface:#0f0f1c;--surface2:#14142a;--border:#1e1e38;
+  --text:#e2e8f0;--muted:#475569;--subtle:#94a3b8;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);padding:24px 16px 60px;overflow-x:hidden}
+
+/* ══ HEADER ══ */
+.header{text-align:center;margin-bottom:30px;position:relative}
+.header h1{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.header p{color:var(--muted);font-size:.82rem;margin-top:4px}
+.header-glow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:400px;height:80px;background:radial-gradient(ellipse,rgba(99,102,241,.25) 0%,transparent 70%);pointer-events:none}
+
+/* ══ SETTINGS BUTTON (top-right fixed) ══ */
+.settings-fab{position:fixed;top:18px;right:18px;z-index:400;display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(20,20,42,.85);backdrop-filter:blur(12px);color:var(--text);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .25s;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+.settings-fab:hover{border-color:var(--accent);color:#a5b4fc;background:rgba(30,30,60,.9);box-shadow:0 4px 32px rgba(99,102,241,.3)}
+.settings-fab .gear{font-size:1rem;transition:transform .4s}
+.settings-fab:hover .gear{transform:rotate(60deg)}
+
+/* ══ SETTINGS DRAWER ══ */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:450;opacity:0;pointer-events:none;transition:opacity .3s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:-520px;width:min(500px,98vw);height:100vh;background:var(--surface2);border-left:1px solid var(--border);z-index:460;transition:right .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.6);overflow:hidden}
+.drawer.open{right:0}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.drawer-head h2{font-size:1rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.drawer-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:inherit}
+.drawer-close:hover{border-color:#f87171;color:#f87171}
+.drawer-body{flex:1;overflow-y:auto;padding:0}
+.drawer-body::-webkit-scrollbar{width:3px}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ══ SETTINGS TABS inside drawer ══ */
+.stab-bar{display:flex;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.stab-btn{flex:1;padding:11px 6px;font-size:.68rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);background:transparent;border:none;cursor:pointer;font-family:inherit;transition:all .2s;position:relative}
+.stab-btn.on{color:#a5b4fc;background:var(--surface2)}
+.stab-btn.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.stab-btn:hover:not(.on){color:var(--subtle)}
+.stab-pane{display:none;padding:18px;flex-direction:column;gap:13px}
+.stab-pane.on{display:flex}
+
+/* ══ LAYOUT ══ */
+.main{max-width:800px;margin:0 auto}
+
+/* ══ CARD SCENE ══ */
+.preview-col{display:flex;flex-direction:column;gap:14px;max-width:480px;margin:0 auto}
+.card-scene{perspective:1400px;width:100%;cursor:pointer;user-select:none}
+.card-inner{position:relative;width:100%;padding-top:61%;border-radius:24px;transition:transform .8s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;inset:0;border-radius:24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 36px 90px rgba(0,0,0,.75)}
+.card-back-face{transform:rotateY(180deg)}
+
+/* ══ THEMES ══ */
+.t-violet   {background:linear-gradient(135deg,#1e1b4b,#4c1d95,#7c3aed)}
+.t-ocean    {background:linear-gradient(135deg,#0c4a6e,#0369a1,#0ea5e9)}
+.t-gold     {background:linear-gradient(135deg,#78350f,#b45309,#f59e0b)}
+.t-rose     {background:linear-gradient(135deg,#881337,#be123c,#fb7185)}
+.t-slate    {background:linear-gradient(135deg,#0f172a,#1e293b,#334155)}
+.t-emerald  {background:linear-gradient(135deg,#064e3b,#047857,#10b981)}
+.t-midnight {background:linear-gradient(135deg,#020617,#0f172a,#1e3a5f)}
+.t-crimson  {background:linear-gradient(135deg,#3b0764,#6d28d9,#db2777)}
+.t-sunset   {background:linear-gradient(135deg,#7c2d12,#c2410c,#f97316,#fbbf24)}
+.t-neon     {background:linear-gradient(135deg,#021a12,#042f2e,#059669);box-shadow:0 0 50px rgba(16,185,129,.35)!important}
+.t-galaxy   {background:linear-gradient(135deg,#0d0221,#1a0533,#2d1b69,#4c1d95)}
+.t-arctic   {background:linear-gradient(135deg,#0c4a6e,#164e63,#0e7490,#22d3ee)}
+.t-copper   {background:linear-gradient(135deg,#431407,#7c2d12,#c2410c,#ea580c)}
+.t-holo     {background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81)}
+.t-sakura   {background:linear-gradient(135deg,#500724,#9d174d,#ec4899,#f9a8d4)}
+.t-forest   {background:linear-gradient(135deg,#052e16,#14532d,#166534,#4ade80)}
+.t-plasma   {background:linear-gradient(135deg,#1a0030,#7700cc,#ff00aa,#ff6600)}
+.t-ice      {background:linear-gradient(135deg,#e0f2fe,#bae6fd,#7dd3fc,#38bdf8)}
+.t-neon.anim-pulse{animation:neonPulse 2s ease-in-out infinite}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 40px rgba(16,185,129,.3)}50%{box-shadow:0 0 80px rgba(16,185,129,.6)}}
+
+/* ══ CARD BG IMAGE ══ */
+/* when a custom image is set, it becomes the card background */
+.card-face.has-bg-img{background-image:var(--card-bg-img);background-size:cover;background-position:center;background-repeat:no-repeat}
+/* gradient colour-tint overlay so text stays readable */
+.card-face.has-bg-img .bg-tint{display:block!important}
+.bg-tint{display:none;position:absolute;inset:0;border-radius:24px;background:rgba(0,0,0,.42);z-index:0;pointer-events:none}
+
+/* ══ CANVAS ══ */
+.card-canvas{position:absolute;inset:0;border-radius:24px;z-index:1;pointer-events:none}
+
+/* ══ OVERLAYS ══ */
+.holo-shimmer{display:none;position:absolute;inset:0;border-radius:24px;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.08) 42%,rgba(120,80,255,.15) 50%,rgba(0,200,255,.12) 58%,transparent 65%);background-size:200% 100%;animation:holoPan 2.5s linear infinite;pointer-events:none;z-index:3}
+@keyframes holoPan{0%{background-position:-100% 0}100%{background-position:200% 0}}
+.glitter-layer{display:none;position:absolute;inset:0;border-radius:24px;background-image:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1px),radial-gradient(circle,rgba(255,255,255,.6) 1px,transparent 1px);background-size:30px 30px,15px 15px;background-position:0 0,15px 15px;animation:glitterSpin 3s linear infinite;pointer-events:none;z-index:3;opacity:.3}
+@keyframes glitterSpin{0%{background-position:0 0,15px 15px}100%{background-position:30px 30px,45px 45px}}
+.aurora-layer{display:none;position:absolute;inset:0;border-radius:24px;overflow:hidden;pointer-events:none;z-index:2}
+.aurora-layer::before,.aurora-layer::after{content:'';position:absolute;width:200%;height:200%;top:-50%;left:-50%;animation:auroraMove 6s ease-in-out infinite alternate}
+.aurora-layer::before{background:radial-gradient(ellipse at 30% 50%,rgba(99,102,241,.4),transparent 60%)}
+.aurora-layer::after{background:radial-gradient(ellipse at 70% 50%,rgba(168,85,247,.35),transparent 60%);animation-delay:-3s}
+@keyframes auroraMove{0%{transform:translate(-10%,-10%) rotate(0deg)}100%{transform:translate(10%,10%) rotate(15deg)}}
+.ripple-layer{display:none;position:absolute;inset:0;border-radius:24px;pointer-events:none;z-index:3;overflow:hidden}
+.tilt-light{position:absolute;inset:0;border-radius:24px;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.14),transparent 55%);pointer-events:none;z-index:4;opacity:0;transition:opacity .2s}
+
+/* ══ FREEZE ══ */
+.freeze-ov{position:absolute;inset:0;border-radius:24px;background:rgba(8,18,40,.72);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;z-index:10;opacity:0;pointer-events:none;transition:opacity .4s}
+.freeze-ov.on{opacity:1;pointer-events:all}
+.freeze-ico{font-size:2.8rem;animation:iceFloat 2s ease-in-out infinite}
+@keyframes iceFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}
+.freeze-txt{font-size:.72rem;font-weight:800;letter-spacing:3px;color:#93c5fd;text-transform:uppercase;text-shadow:0 0 20px rgba(147,197,253,.8)}
+
+/* ══ CARD CONTENT ══ */
+.card-content{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;z-index:2}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start}
+.bank-name{font-size:1rem;font-weight:700;letter-spacing:.8px;color:rgba(255,255,255,.95);text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.card-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.badge-type{font-size:.5rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.85);background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;backdrop-filter:blur(6px)}
+.badge-tier{font-size:.46rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.4);padding:2px 7px;border-radius:20px}
+.chip{width:42px;height:32px;background:linear-gradient(135deg,#f0d060,#c8a020,#f0d060,#c8a020);border-radius:6px;margin:10px 0 8px;position:relative;box-shadow:inset 0 0 6px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.4);flex-shrink:0}
+.chip::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:26px;height:18px;border:1.5px solid rgba(0,0,0,.25);border-radius:3px}
+.chip::after{content:'';position:absolute;top:50%;left:0;right:0;border-top:1.5px solid rgba(0,0,0,.2);transform:translateY(-50%)}
+.chip.no-chip{display:none}
+.contactless-svg{position:absolute;top:14px;right:20px;width:20px;height:20px;opacity:.65;z-index:3}
+.card-num-row{font-family:'Inconsolata',monospace;font-size:1.1rem;letter-spacing:3px;color:rgba(255,255,255,.95);text-shadow:0 1px 6px rgba(0,0,0,.7);display:flex;gap:9px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.mask-eye{font-size:.68rem;opacity:.45;cursor:pointer;transition:opacity .2s;margin-left:2px}
+.mask-eye:hover{opacity:.9}
+.card-bot{display:flex;justify-content:space-between;align-items:flex-end}
+.card-lbl{font-size:.46rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:2px}
+.card-val{font-size:.76rem;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.8px;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.net-wrap{display:flex;align-items:center;gap:3px}
+.visa-logo{font-family:'Times New Roman',serif;font-size:1.4rem;font-weight:900;font-style:italic;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);letter-spacing:-1px}
+.mc-c{width:24px;height:24px;border-radius:50%}
+.mc-l{background:#eb001b;opacity:.9;margin-right:-8px}
+.mc-r{background:#f79e1b;opacity:.9}
+.amex-logo{font-size:.62rem;font-weight:800;letter-spacing:1px;color:#fff;background:rgba(255,255,255,.22);padding:3px 7px;border-radius:4px}
+.disc-logo{font-size:.66rem;font-weight:800;color:#fff;letter-spacing:.8px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.up-logo{font-size:.6rem;font-weight:800;color:#fff;background:rgba(200,0,0,.5);padding:2px 6px;border-radius:3px;letter-spacing:.5px}
+.rupay-logo{font-size:.6rem;font-weight:800;color:#fff;background:rgba(0,100,200,.4);padding:2px 6px;border-radius:3px}
+
+/* BACK */
+.back-content{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;z-index:2}
+.mag-strip{height:38px;background:linear-gradient(180deg,#111,#2a2a2a 50%,#111);margin:0 -22px;margin-top:26px;margin-bottom:13px}
+.sig-strip{background:linear-gradient(90deg,#f5f5f5,#e8e8e8);height:40px;border-radius:4px;display:flex;align-items:center;padding:0 10px;justify-content:space-between;margin-bottom:10px}
+.sig-lines{flex:1;display:flex;flex-direction:column;gap:4px;padding-right:10px}
+.sig-line{height:2px;background:repeating-linear-gradient(90deg,#ccc 0,#ccc 4px,#f5f5f5 4px,#f5f5f5 8px)}
+.cvv-box{background:#fff;color:#111;font-family:'Inconsolata',monospace;font-size:1rem;font-weight:700;padding:4px 9px;border-radius:4px;letter-spacing:3px;min-width:48px;text-align:center}
+.holo-sticker{width:46px;height:46px;border-radius:50%;background:conic-gradient(from 0deg,#ff0080,#ff8c00,#ffff00,#00ff00,#00bfff,#8000ff,#ff0080);opacity:.65;filter:blur(1px);position:absolute;bottom:16px;left:20px;animation:holoSpin 3s linear infinite;z-index:2}
+@keyframes holoSpin{to{filter:hue-rotate(360deg) blur(1px)}}
+.back-net{display:flex;justify-content:flex-end;margin-top:auto}
+.back-bank-txt{font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:.8px;text-align:center;margin-top:5px}
+
+/* ══ ACTIONS ══ */
+.card-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.act-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--subtle);font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.act-btn:hover{border-color:var(--accent);color:#a5b4fc;background:rgba(99,102,241,.1)}
+.act-btn.danger:hover{border-color:#f87171;color:#f87171;background:rgba(248,113,113,.08)}
+
+/* ══ PANEL BOX ══ */
+.panel-box{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pt{font-size:.66rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted)}
+
+/* ══ SAVED CARDS ══ */
+.saved-grid{display:flex;flex-direction:column;gap:7px;max-height:170px;overflow-y:auto}
+.saved-item{display:flex;align-items:center;gap:9px;padding:9px;background:var(--bg);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:border-color .2s}
+.saved-item:hover{border-color:var(--accent)}
+.saved-mini{width:42px;height:26px;border-radius:5px;flex-shrink:0}
+.saved-inf{flex:1;min-width:0}
+.saved-nm{font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-sub{font-size:.63rem;color:var(--muted);font-family:'Inconsolata',monospace}
+.saved-del{font-size:.78rem;color:var(--muted);padding:3px 5px;cursor:pointer;border-radius:4px;transition:color .2s}
+.saved-del:hover{color:#f87171}
+.empty-msg{text-align:center;color:var(--muted);font-size:.76rem;padding:14px 0}
+
+/* ══ BALANCE ══ */
+.bal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.bal-num-wrap{display:flex;align-items:baseline;gap:5px}
+.bal-sym{font-size:.9rem;color:var(--muted);font-weight:600}
+.bal-num{font-size:1.9rem;font-weight:800;color:var(--text);font-family:'Inconsolata',monospace}
+.status-chip{font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.sc-active{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3)}
+.sc-frozen{background:rgba(147,197,253,.15);color:#93c5fd;border:1px solid rgba(147,197,253,.3)}
+.sc-blocked{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3)}
+.bal-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.bal-stat{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
+.sl{font-size:.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px}
+.sv{font-size:.86rem;font-weight:700;color:var(--text);font-family:'Inconsolata',monospace}
+.sv.g{color:#34d399}.sv.r{color:#f87171}.sv.a{color:#fbbf24}.sv.b{color:#60a5fa}
+.bar-wrap{margin-top:2px}
+.bar-lbl{display:flex;justify-content:space-between;font-size:.6rem;color:var(--muted);margin-bottom:5px}
+.bar-track{height:5px;background:#1e293b;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease}
+
+/* ══ TRANSACTIONS ══ */
+.txn-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.txn-item{display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--bg);border:1px solid var(--border);border-radius:9px}
+.txn-ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.txn-inf{flex:1;min-width:0}
+.txn-mer{font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txn-dt{font-size:.6rem;color:var(--muted)}
+.txn-amt{font-family:'Inconsolata',monospace;font-size:.82rem;font-weight:700;flex-shrink:0}
+.txn-rm{font-size:.72rem;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:3px;transition:color .2s}
+.txn-rm:hover{color:#f87171}
+
+/* ══ FORM ══ */
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:.69rem;font-weight:600;color:var(--subtle);letter-spacing:.4px;text-transform:uppercase}
+input,select{background:var(--bg);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:8px 12px;font-size:.87rem;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.13)}
+select option{background:#14142a}
+input[type=range]{-webkit-appearance:none;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));padding:0;border:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 0 4px rgba(0,0,0,.4)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.sep{height:1px;background:var(--border)}
+.sub-title{font-size:.63rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--accent)}
+
+/* TYPE TOGGLE */
+.type-tog{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-btn{padding:9px;border:1.5px solid var(--border);border-radius:10px;background:transparent;color:var(--muted);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.type-btn.active{border-color:var(--accent);background:rgba(99,102,241,.15);color:#a5b4fc}
+
+/* THEME GRID */
+.theme-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.td{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform .2s,border-color .2s;position:relative}
+.td:hover{transform:scale(1.14)}
+.td.sel{border-color:#fff;transform:scale(1.18)}
+.td::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;color:#fff;font-weight:800;opacity:0;transition:opacity .2s}
+.td.sel::after{opacity:1}
+.td-violet  {background:linear-gradient(135deg,#4c1d95,#7c3aed)}
+.td-ocean   {background:linear-gradient(135deg,#0369a1,#0ea5e9)}
+.td-gold    {background:linear-gradient(135deg,#b45309,#f59e0b)}
+.td-rose    {background:linear-gradient(135deg,#be123c,#fb7185)}
+.td-slate   {background:linear-gradient(135deg,#1e293b,#334155)}
+.td-emerald {background:linear-gradient(135deg,#047857,#10b981)}
+.td-midnight{background:linear-gradient(135deg,#020617,#1e3a5f)}
+.td-crimson {background:linear-gradient(135deg,#6d28d9,#db2777)}
+.td-sunset  {background:linear-gradient(135deg,#c2410c,#f97316,#fbbf24)}
+.td-neon    {background:linear-gradient(135deg,#042f2e,#059669)}
+.td-galaxy  {background:linear-gradient(135deg,#0d0221,#4c1d95)}
+.td-arctic  {background:linear-gradient(135deg,#0c4a6e,#22d3ee)}
+.td-copper  {background:linear-gradient(135deg,#7c2d12,#ea580c)}
+.td-holo    {background:linear-gradient(135deg,#312e81,#a855f7)}
+.td-sakura  {background:linear-gradient(135deg,#9d174d,#ec4899,#f9a8d4)}
+.td-forest  {background:linear-gradient(135deg,#14532d,#4ade80)}
+.td-plasma  {background:linear-gradient(135deg,#7700cc,#ff00aa,#ff6600)}
+.td-ice     {background:linear-gradient(135deg,#bae6fd,#38bdf8)}
+
+/* ANIMATION TOGGLES */
+.anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.anim-btn{padding:8px 9px;border:1.5px solid var(--border);border-radius:9px;background:transparent;color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-align:left;display:flex;align-items:center;gap:5px}
+.anim-btn.on{border-color:#34d399;background:rgba(52,211,153,.08);color:#34d399}
+
+/* IMAGE UPLOAD */
+.img-upload-area{border:2px dashed var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative}
+.img-upload-area:hover{border-color:var(--accent)}
+.img-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload-txt{font-size:.75rem;color:var(--muted);pointer-events:none}
+.img-preview-wrap{display:flex;align-items:center;gap:10px;margin-top:8px}
+.img-preview{width:70px;height:42px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.05);border:1px solid var(--border)}
+.img-pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.pos-btn{padding:5px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:.65rem;cursor:pointer;font-family:inherit;transition:all .2s;text-align:center}
+.pos-btn.sel{border-color:var(--accent);color:#a5b4fc;background:rgba(99,102,241,.1)}
+.img-tint-row{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+
+/* BUTTONS */
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn-primary{padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,transform .1s}
+.btn-primary:hover{opacity:.88}
+.btn-primary:active{transform:scale(.98)}
+.btn-save{background:linear-gradient(135deg,#059669,#10b981);border:none;color:#fff;padding:11px;border-radius:11px;font-size:.86rem;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.btn-save:hover{opacity:.88}
+.btn-sec{padding:11px;border-radius:11px;border:1.5px solid var(--border);background:transparent;color:var(--subtle);font-size:.86rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-sec:hover{border-color:var(--accent);color:#a5b4fc}
+
+/* ══ MODAL ══ */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);z-index:500;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(360px,94vw);display:flex;flex-direction:column;gap:13px}
+.modal h3{font-size:.92rem;font-weight:700;color:var(--text)}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:3px}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:#1e293b;border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:12px;font-size:.8rem;font-weight:600;opacity:0;transition:all .3s;z-index:600;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:1000;display:none}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
 <body>
 
-<h1>💳 Card Generator</h1>
+<!-- ═══ SETTINGS FAB ═══ -->
+<button class="settings-fab" onclick="openDrawer()">
+  <span class="gear">⚙️</span> Settings
+</button>
 
-<div class="main-layout">
-
-  <!-- LEFT: Card + Balance + Transactions -->
-  <div class="preview-section">
-
-    <!-- Card -->
-    <div class="card-wrapper">
-      <div class="card-inner theme-violet" id="cardInner">
-
-        <!-- FRONT -->
-        <div class="card-front" id="cardFront">
-          <div class="card-top">
-            <div class="bank-name" id="previewBank">NEXUS BANK</div>
-            <div class="card-badges">
-              <div class="card-type-badge" id="previewType">DEBIT</div>
-              <div class="tier-badge" id="previewTier">PLATINUM</div>
-            </div>
-          </div>
-
-          <svg class="contactless" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M8.5 15.5c1-1 1.5-2.2 1.5-3.5S9.5 9.5 8.5 8.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M5.5 18.5c1.9-1.9 3-4.5 3-7S7.4 6.4 5.5 4.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="1" fill="white"/>
-          </svg>
-
-          <div class="chip"></div>
-
-          <div class="card-number" id="previewNumber">
-            <span>1234</span><span>5678</span><span>9012</span><span>3456</span>
-          </div>
-
-          <div class="card-bottom">
-            <div>
-              <div class="card-label">Card Holder</div>
-              <div class="card-value" id="previewName">JOHN DOE</div>
-            </div>
-            <div>
-              <div class="card-label">Expires</div>
-              <div class="card-value" id="previewExpiry">12/28</div>
-            </div>
-            <div class="network-logo" id="previewNetwork">
-              <span class="visa-logo">VISA</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- BACK -->
-        <div class="card-back theme-violet" id="cardBack">
-          <div class="mag-strip"></div>
-          <div class="signature-strip">
-            <div class="sig-lines">
-              <div class="sig-line"></div>
-              <div class="sig-line"></div>
-              <div class="sig-line"></div>
-            </div>
-            <div class="cvv-box" id="previewCVV">737</div>
-          </div>
-          <div class="hologram"></div>
-          <div class="back-network" id="previewNetworkBack">
-            <span class="visa-logo">VISA</span>
-          </div>
-          <div class="back-bank" id="previewBankBack">NEXUS BANK • MEMBER FDIC</div>
-        </div>
-
-      </div>
-    </div>
-
-    <button class="flip-btn" onclick="flipCard()">🔄 Flip Card</button>
-
-    <!-- Balance Panel -->
-    <div class="balance-panel">
-      <div class="balance-title">Account Overview</div>
-      <div class="balance-main">
-        <span class="balance-currency" id="balCurrency">$</span>
-        <span class="balance-amount" id="balAmount">12,450.00</span>
-      </div>
-      <div class="balance-row">
-        <div class="balance-stat">
-          <div class="stat-label">Available</div>
-          <div class="stat-value green" id="balAvailable">$11,820.00</div>
-        </div>
-        <div class="balance-stat">
-          <div class="stat-label">Pending</div>
-          <div class="stat-value amber" id="balPending">$630.00</div>
-        </div>
-        <div class="balance-stat">
-          <div class="stat-label">Credit Limit</div>
-          <div class="stat-value" id="balLimit">$15,000.00</div>
-        </div>
-        <div class="balance-stat">
-          <div class="stat-label">Rewards Pts</div>
-          <div class="stat-value" id="balPoints">48,320</div>
-        </div>
-      </div>
-      <div class="spend-bar-wrap">
-        <div class="spend-bar-label">
-          <span>Monthly Spending</span>
-          <span id="spendPct">41%</span>
-        </div>
-        <div class="spend-bar-track">
-          <div class="spend-bar-fill" id="spendBar" style="width:41%"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Transactions -->
-    <div class="txn-panel">
-      <div class="txn-header">
-        <div class="txn-title">Recent Transactions</div>
-        <button class="btn-add-txn" onclick="openTxnModal()">+ Add</button>
-      </div>
-      <div class="txn-list" id="txnList"></div>
-    </div>
-
+<!-- ═══ SETTINGS DRAWER ═══ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="settingsDrawer">
+  <div class="drawer-head">
+    <h2>⚙️ Settings</h2>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
+  <div class="drawer-body">
 
-  <!-- RIGHT: Controls -->
-  <div class="right-col">
-    <div class="controls">
-      <div class="section-title">Card Details</div>
+    <!-- Tab bar -->
+    <div class="stab-bar">
+      <button class="stab-btn on"  onclick="switchTab('card',this)">💳 Card</button>
+      <button class="stab-btn"     onclick="switchTab('appearance',this)">🎨 Looks</button>
+      <button class="stab-btn"     onclick="switchTab('balance',this)">💰 Balance</button>
+      <button class="stab-btn"     onclick="switchTab('anims',this)">✨ Anims</button>
+      <button class="stab-btn"     onclick="switchTab('image',this)">🖼 Image</button>
+    </div>
 
-      <div class="form-group">
+    <!-- CARD TAB -->
+    <div class="stab-pane on" id="tab-card">
+      <div class="fg">
         <label>Card Type</label>
-        <div class="type-toggle">
-          <button class="type-btn active" id="btnDebit" onclick="setType('DEBIT')">💳 Debit</button>
-          <button class="type-btn" id="btnCredit" onclick="setType('CREDIT')">💰 Credit</button>
+        <div class="type-tog">
+          <button class="type-btn active" id="btnDebit"  onclick="setType('DEBIT')">💳 Debit</button>
+          <button class="type-btn"        id="btnCredit" onclick="setType('CREDIT')">💰 Credit</button>
         </div>
       </div>
-
-      <div class="row-2">
-        <div class="form-group">
+      <div class="r2">
+        <div class="fg">
           <label>Network</label>
           <select id="network" onchange="updateCard()">
             <option value="visa">Visa</option>
             <option value="mastercard">Mastercard</option>
             <option value="amex">American Express</option>
             <option value="discover">Discover</option>
+            <option value="unionpay">UnionPay</option>
+            <option value="rupay">RuPay</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="fg">
           <label>Card Tier</label>
           <select id="tier" onchange="updateCard()">
             <option value="CLASSIC">Classic</option>
@@ -780,45 +346,74 @@
             <option value="PLATINUM" selected>Platinum</option>
             <option value="BLACK">Black</option>
             <option value="INFINITE">Infinite</option>
+            <option value="SIGNATURE">Signature</option>
+            <option value="WORLD ELITE">World Elite</option>
           </select>
         </div>
       </div>
-
-      <div class="form-group">
-        <label>Bank / Issuer Name</label>
-        <input type="text" id="bankName" placeholder="e.g. NEXUS BANK" maxlength="20" oninput="updateCard()" value="NEXUS BANK"/>
+      <div class="fg"><label>Card Nickname</label><input type="text" id="nickname" placeholder="e.g. My Main Card" maxlength="25"/></div>
+      <div class="fg"><label>Bank / Issuer</label><input type="text" id="bankName" placeholder="NEXUS BANK" maxlength="20" oninput="updateCard()" value="NEXUS BANK"/></div>
+      <div class="fg"><label>Cardholder Name</label><input type="text" id="holderName" placeholder="JOHN DOE" maxlength="22" oninput="updateCard()" value="JOHN DOE"/></div>
+      <div class="fg"><label>Card Number</label><input type="text" id="cardNumber" placeholder="16-digit number" maxlength="19" oninput="formatNumber()" value="1234 5678 9012 3456"/></div>
+      <div class="r3">
+        <div class="fg"><label>Expiry</label><input type="text" id="expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry()" value="12/28"/></div>
+        <div class="fg"><label>CVV</label><input type="password" id="cvv" placeholder="CVV" maxlength="4" oninput="updateCard()" value="737"/></div>
+        <div class="fg"><label>PIN</label><input type="password" id="pin" placeholder="PIN" maxlength="4" value="4821"/></div>
       </div>
-
-      <div class="form-group">
-        <label>Cardholder Name</label>
-        <input type="text" id="holderName" placeholder="e.g. JOHN DOE" maxlength="22" oninput="updateCard()" value="JOHN DOE"/>
-      </div>
-
-      <div class="form-group">
-        <label>Card Number</label>
-        <input type="text" id="cardNumber" placeholder="16-digit number" maxlength="19" oninput="formatNumber()" value="1234 5678 9012 3456"/>
-      </div>
-
-      <div class="row-3">
-        <div class="form-group">
-          <label>Expiry</label>
-          <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry()" value="12/28"/>
+      <div class="r2">
+        <div class="fg">
+          <label>Show Chip</label>
+          <select id="showChip" onchange="updateCard()"><option value="yes">✅ Yes</option><option value="no">❌ No</option></select>
         </div>
-        <div class="form-group">
-          <label>CVV</label>
-          <input type="text" id="cvv" placeholder="3-4 digits" maxlength="4" oninput="updateCard()" value="737"/>
-        </div>
-        <div class="form-group">
-          <label>PIN</label>
-          <input type="password" id="pin" placeholder="4 digits" maxlength="4" oninput="updateCard()" value="4821"/>
+        <div class="fg">
+          <label>Card Status</label>
+          <select id="cardStatus" onchange="updateStatus()">
+            <option value="active">✅ Active</option>
+            <option value="frozen">🔒 Frozen</option>
+            <option value="blocked">🚫 Blocked</option>
+          </select>
         </div>
       </div>
-
       <div class="sep"></div>
-      <div class="section-title">Balance & Limits</div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="randomize()">🎲 Randomize</button>
+        <button class="btn-save"    onclick="saveCard()">💾 Save Card</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn-sec" onclick="flipCard()">🔄 Flip Card</button>
+        <button class="btn-sec" onclick="copyNum()">📋 Copy Number</button>
+      </div>
+    </div>
 
-      <div class="row-2">
-        <div class="form-group">
+    <!-- APPEARANCE TAB -->
+    <div class="stab-pane" id="tab-appearance">
+      <div class="sub-title">Card Theme</div>
+      <div class="theme-grid">
+        <div class="td td-violet sel"   onclick="setTheme('violet',this)"   title="Violet"></div>
+        <div class="td td-ocean"        onclick="setTheme('ocean',this)"    title="Ocean"></div>
+        <div class="td td-gold"         onclick="setTheme('gold',this)"     title="Gold"></div>
+        <div class="td td-rose"         onclick="setTheme('rose',this)"     title="Rose"></div>
+        <div class="td td-slate"        onclick="setTheme('slate',this)"    title="Slate"></div>
+        <div class="td td-emerald"      onclick="setTheme('emerald',this)"  title="Emerald"></div>
+        <div class="td td-midnight"     onclick="setTheme('midnight',this)" title="Midnight"></div>
+        <div class="td td-crimson"      onclick="setTheme('crimson',this)"  title="Crimson"></div>
+        <div class="td td-sunset"       onclick="setTheme('sunset',this)"   title="Sunset"></div>
+        <div class="td td-neon"         onclick="setTheme('neon',this)"     title="Neon"></div>
+        <div class="td td-galaxy"       onclick="setTheme('galaxy',this)"   title="Galaxy"></div>
+        <div class="td td-arctic"       onclick="setTheme('arctic',this)"   title="Arctic"></div>
+        <div class="td td-copper"       onclick="setTheme('copper',this)"   title="Copper"></div>
+        <div class="td td-holo"         onclick="setTheme('holo',this)"     title="Holographic"></div>
+        <div class="td td-sakura"       onclick="setTheme('sakura',this)"   title="Sakura"></div>
+        <div class="td td-forest"       onclick="setTheme('forest',this)"   title="Forest"></div>
+        <div class="td td-plasma"       onclick="setTheme('plasma',this)"   title="Plasma"></div>
+        <div class="td td-ice"          onclick="setTheme('ice',this)"      title="Ice"></div>
+      </div>
+    </div>
+
+    <!-- BALANCE TAB -->
+    <div class="stab-pane" id="tab-balance">
+      <div class="r2">
+        <div class="fg">
           <label>Currency</label>
           <select id="currency" onchange="updateBalance()">
             <option value="$">USD ($)</option>
@@ -829,295 +424,833 @@
             <option value="₩">KRW (₩)</option>
             <option value="A$">AUD (A$)</option>
             <option value="C$">CAD (C$)</option>
+            <option value="₹">INR (₹)</option>
+            <option value="R$">BRL (R$)</option>
+            <option value="₽">RUB (₽)</option>
+            <option value="د.إ">AED (د.إ)</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Card Status</label>
-          <select id="cardStatus" onchange="updateBalance()">
-            <option value="active">✅ Active</option>
-            <option value="frozen">🔒 Frozen</option>
-            <option value="blocked">🚫 Blocked</option>
-          </select>
-        </div>
+        <div class="fg"><label>APR (%)</label><input type="number" id="aprRate" value="19.99" min="0" max="99" step="0.01" oninput="updateBalance()"/></div>
       </div>
-
-      <div class="form-group">
+      <div class="fg">
         <label>Balance — <span id="balDisplay">$12,450.00</span></label>
-        <input type="range" id="balSlider" min="0" max="100000" value="12450" step="50" oninput="updateBalance()"/>
+        <input type="range" id="balSlider" min="0" max="500000" value="12450" step="50" oninput="updateBalance()"/>
       </div>
-
-      <div class="form-group">
+      <div class="fg">
         <label>Credit Limit — <span id="limitDisplay">$15,000.00</span></label>
-        <input type="range" id="limitSlider" min="500" max="100000" value="15000" step="500" oninput="updateBalance()"/>
+        <input type="range" id="limitSlider" min="500" max="500000" value="15000" step="500" oninput="updateBalance()"/>
       </div>
-
-      <div class="form-group">
-        <label>Rewards Points</label>
-        <input type="number" id="rewardsPoints" value="48320" min="0" max="9999999" oninput="updateBalance()"/>
-      </div>
-
-      <div class="sep"></div>
-      <div class="section-title">Appearance</div>
-
-      <div class="form-group">
-        <label>Card Color</label>
-        <div class="color-row">
-          <div class="color-dot violet selected" onclick="setTheme('violet',this)" title="Violet"></div>
-          <div class="color-dot ocean"    onclick="setTheme('ocean',this)"    title="Ocean"></div>
-          <div class="color-dot gold"     onclick="setTheme('gold',this)"     title="Gold"></div>
-          <div class="color-dot rose"     onclick="setTheme('rose',this)"     title="Rose"></div>
-          <div class="color-dot slate"    onclick="setTheme('slate',this)"    title="Slate"></div>
-          <div class="color-dot emerald"  onclick="setTheme('emerald',this)"  title="Emerald"></div>
-          <div class="color-dot midnight" onclick="setTheme('midnight',this)" title="Midnight"></div>
-          <div class="color-dot crimson"  onclick="setTheme('crimson',this)"  title="Crimson"></div>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn-generate" onclick="randomize()">🎲 Randomize</button>
-        <button class="btn-outline"  onclick="flipCard()">🔄 Flip Card</button>
+      <div class="r2">
+        <div class="fg"><label>Rewards Points</label><input type="number" id="rewardsPts" value="48320" min="0" max="9999999" oninput="updateBalance()"/></div>
+        <div class="fg"><label>Cash Back %</label><input type="number" id="cashbackRate" value="1.15" min="0" max="20" step="0.01" oninput="updateBalance()"/></div>
       </div>
     </div>
+
+    <!-- ANIMATIONS TAB -->
+    <div class="stab-pane" id="tab-anims">
+      <div class="sub-title">Canvas Effects</div>
+      <div class="anim-grid">
+        <button class="anim-btn on"  id="aStar"      onclick="toggleAnim('stars')">⭐ Shooting Stars</button>
+        <button class="anim-btn on"  id="aParticle"  onclick="toggleAnim('particle')">🌌 Particles</button>
+        <button class="anim-btn on"  id="aTwinkle"   onclick="toggleAnim('twinkle')">✦ Twinkle</button>
+        <button class="anim-btn"     id="aMatrix"    onclick="toggleAnim('matrix')">🟩 Matrix Rain</button>
+        <button class="anim-btn"     id="aFirefly"   onclick="toggleAnim('firefly')">🔆 Fireflies</button>
+        <button class="anim-btn"     id="aSnow"      onclick="toggleAnim('snow')">❄️ Snow</button>
+      </div>
+      <div class="sep"></div>
+      <div class="sub-title">Overlay Effects</div>
+      <div class="anim-grid">
+        <button class="anim-btn on"  id="aTilt"      onclick="toggleAnim('tilt')">🖐 3D Tilt</button>
+        <button class="anim-btn"     id="aHolo"      onclick="toggleAnim('holo')">🌈 Holo Shimmer</button>
+        <button class="anim-btn"     id="aGlitter"   onclick="toggleAnim('glitter')">💎 Glitter</button>
+        <button class="anim-btn"     id="aAurora"    onclick="toggleAnim('aurora')">🌅 Aurora</button>
+        <button class="anim-btn"     id="aPulse"     onclick="toggleAnim('pulse')">💓 Neon Pulse</button>
+        <button class="anim-btn"     id="aRipple"    onclick="toggleAnim('rippleAuto')">💧 Auto Ripple</button>
+      </div>
+    </div>
+
+    <!-- IMAGE TAB -->
+    <div class="stab-pane" id="tab-image">
+      <div class="sub-title">Card Background Image</div>
+      <p style="font-size:.72rem;color:var(--muted);line-height:1.5">Upload any image — it fills the entire card as background. Theme colour still shows as a tint overlay.</p>
+      <div class="img-upload-area">
+        <input type="file" id="imgUpload" accept="image/*" onchange="handleImgUpload(event)"/>
+        <div class="img-upload-txt">📁 Click to upload background image<br><span style="font-size:.65rem">PNG, JPG, SVG, WebP</span></div>
+      </div>
+      <div id="imgControls" style="display:none;flex-direction:column;gap:12px">
+        <div class="img-preview-wrap">
+          <img class="img-preview" id="imgPreview" src="" alt=""/>
+          <div style="flex:1;font-size:.72rem;color:var(--subtle)">Image loaded ✅<br>It covers the full card face.</div>
+        </div>
+        <div class="img-tint-row">
+          <label>Dark Tint Strength</label>
+          <input type="range" id="tintSlider" min="0" max="80" value="42" oninput="applyBgImg()"/>
+          <div style="font-size:.62rem;color:var(--muted)">Higher = darker overlay so text is easier to read</div>
+        </div>
+        <div class="img-tint-row">
+          <label>Image Position</label>
+          <select id="bgPosition" onchange="applyBgImg()">
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+        <div class="img-tint-row">
+          <label>Image Fit</label>
+          <select id="bgSize" onchange="applyBgImg()">
+            <option value="cover">Cover (fill)</option>
+            <option value="contain">Contain (fit)</option>
+            <option value="100% 100%">Stretch</option>
+          </select>
+        </div>
+        <button class="btn-sec" onclick="removeImg()">🗑 Remove Image</button>
+      </div>
+    </div>
+
+  </div><!-- /drawer-body -->
+</div><!-- /drawer -->
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <div class="header">
+    <div class="header-glow"></div>
+    <h1>💳 Create Card</h1>
+    <p>Design, animate & save your cards</p>
   </div>
-</div>
+
+  <div class="preview-col">
+
+    <!-- CARD -->
+    <div class="card-scene" id="cardScene">
+      <div class="card-inner" id="cardInner">
+
+        <!-- FRONT -->
+        <div class="card-face t-violet" id="cardFront">
+          <div class="bg-tint" id="bgTint"></div>
+          <canvas class="card-canvas" id="canvasFront"></canvas>
+          <div class="holo-shimmer" id="holoFront"></div>
+          <div class="glitter-layer" id="glitterFront"></div>
+          <div class="aurora-layer" id="auroraFront"></div>
+          <div class="ripple-layer" id="rippleFront"></div>
+          <div class="tilt-light" id="tiltLight"></div>
+          <div class="freeze-ov" id="freezeOv">
+            <span class="freeze-ico">❄️</span>
+            <span class="freeze-txt">Card Frozen</span>
+          </div>
+          <svg class="contactless-svg" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M8.5 15.5c1-1 1.5-2.2 1.5-3.5S9.5 9.5 8.5 8.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5.5 18.5c1.9-1.9 3-4.5 3-7S7.4 6.4 5.5 4.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="1" fill="white"/>
+          </svg>
+          <div class="card-content">
+            <div class="card-top">
+              <div class="bank-name" id="prevBank">NEXUS BANK</div>
+              <div class="card-badges">
+                <div class="badge-type" id="prevType">DEBIT</div>
+                <div class="badge-tier" id="prevTier">PLATINUM</div>
+              </div>
+            </div>
+            <div class="chip" id="chipEl"></div>
+            <div class="card-num-row" id="prevNum">
+              <span>1234</span><span>5678</span><span>9012</span><span>3456</span>
+              <span class="mask-eye" onclick="toggleMask(event)">👁</span>
+            </div>
+            <div class="card-bot">
+              <div><div class="card-lbl">Card Holder</div><div class="card-val" id="prevName">JOHN DOE</div></div>
+              <div><div class="card-lbl">Expires</div><div class="card-val" id="prevExpiry">12/28</div></div>
+              <div class="net-wrap" id="prevNet"><span class="visa-logo">VISA</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BACK -->
+        <div class="card-face card-back-face t-violet" id="cardBack">
+          <div class="bg-tint" id="bgTintBack"></div>
+          <canvas class="card-canvas" id="canvasBack"></canvas>
+          <div class="holo-shimmer" id="holoBack"></div>
+          <div class="glitter-layer" id="glitterBack"></div>
+          <div class="aurora-layer" id="auroraBack"></div>
+          <div class="back-content">
+            <div class="mag-strip"></div>
+            <div class="sig-strip">
+              <div class="sig-lines">
+                <div class="sig-line"></div><div class="sig-line"></div><div class="sig-line"></div>
+              </div>
+              <div class="cvv-box" id="prevCVV">737</div>
+            </div>
+            <div class="holo-sticker"></div>
+            <div class="back-net" id="prevNetBack"><span class="visa-logo">VISA</span></div>
+            <div class="back-bank-txt" id="prevBankBack">NEXUS BANK • MEMBER FDIC</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Card Actions -->
+    <div class="card-actions">
+      <button class="act-btn" onclick="flipCard()">🔄 Flip</button>
+      <button class="act-btn" onclick="copyNum()">📋 Copy No.</button>
+      <button class="act-btn" onclick="toggleFreeze()">❄️ Freeze</button>
+      <button class="act-btn" onclick="doRipple()">💫 Ripple</button>
+      <button class="act-btn" onclick="openDrawer()">⚙️ Settings</button>
+      <button class="act-btn danger" onclick="resetCard()">🗑 Reset</button>
+    </div>
+
+    <!-- Saved Cards -->
+    <div class="panel-box">
+      <div class="ph">
+        <div class="pt">💾 Saved Cards</div>
+        <span style="font-size:.68rem;color:var(--muted)" id="savedCount">0 saved</span>
+      </div>
+      <div class="saved-grid" id="savedGrid"><div class="empty-msg">No cards saved yet</div></div>
+    </div>
+
+    <!-- Balance -->
+    <div class="panel-box">
+      <div class="bal-top">
+        <div>
+          <div class="pt" style="margin-bottom:6px">💰 Account Balance</div>
+          <div class="bal-num-wrap">
+            <span class="bal-sym" id="balSym">$</span>
+            <span class="bal-num" id="balNum">12,450.00</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="status-chip sc-active" id="statusChip">● ACTIVE</div>
+          <div style="font-size:.56rem;color:var(--muted);margin-top:6px" id="acctHint">Acct: ••••3456</div>
+        </div>
+      </div>
+      <div class="bal-grid">
+        <div class="bal-stat"><div class="sl">Available</div><div class="sv g" id="bAvail">$11,820.00</div></div>
+        <div class="bal-stat"><div class="sl">Pending</div><div class="sv a" id="bPend">$630.00</div></div>
+        <div class="bal-stat"><div class="sl">Credit Limit</div><div class="sv b" id="bLimit">$15,000</div></div>
+        <div class="bal-stat"><div class="sl">Rewards Pts</div><div class="sv" id="bPts">48,320</div></div>
+        <div class="bal-stat"><div class="sl">Cash Back</div><div class="sv g" id="bCashback">$142.30</div></div>
+        <div class="bal-stat"><div class="sl">APR</div><div class="sv r" id="bAPR">19.99%</div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-lbl"><span>Monthly Spend</span><span id="spPct">41%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="spBar" style="width:41%"></div></div>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="panel-box">
+      <div class="ph">
+        <div class="pt">📋 Transactions</div>
+        <button class="act-btn" style="padding:5px 10px;font-size:.7rem" onclick="openTxnModal()">+ Add</button>
+      </div>
+      <div class="txn-list" id="txnList"></div>
+    </div>
+
+  </div><!-- /preview-col -->
+</div><!-- /main -->
 
 <!-- Add Transaction Modal -->
-<div class="modal-overlay" id="txnModal">
+<div class="modal-ov" id="txnModal">
   <div class="modal">
     <h3>➕ Add Transaction</h3>
-    <div class="form-group">
-      <label>Merchant</label>
-      <input type="text" id="txnMerchant" placeholder="e.g. Amazon" value=""/>
-    </div>
-    <div class="row-2">
-      <div class="form-group">
-        <label>Amount</label>
-        <input type="number" id="txnAmount" placeholder="0.00" value="" min="0" step="0.01"/>
-      </div>
-      <div class="form-group">
-        <label>Type</label>
-        <select id="txnType">
-          <option value="debit">Debit (−)</option>
-          <option value="credit">Credit (+)</option>
-        </select>
+    <div class="fg"><label>Merchant</label><input type="text" id="txnMer" placeholder="e.g. Amazon"/></div>
+    <div class="r2">
+      <div class="fg"><label>Amount</label><input type="number" id="txnAmt" placeholder="0.00" min="0" step="0.01"/></div>
+      <div class="fg"><label>Direction</label>
+        <select id="txnDir"><option value="debit">Debit (−)</option><option value="credit">Credit (+)</option></select>
       </div>
     </div>
-    <div class="form-group">
-      <label>Category</label>
-      <select id="txnCategory">
-        <option value="🛒">🛒 Shopping</option>
-        <option value="🍔">🍔 Food & Dining</option>
-        <option value="⛽">⛽ Transport</option>
-        <option value="🎬">🎬 Entertainment</option>
-        <option value="🏥">🏥 Health</option>
-        <option value="💡">💡 Utilities</option>
-        <option value="✈️">✈️ Travel</option>
-        <option value="💳">💳 Transfer</option>
-        <option value="💰">💰 Income</option>
+    <div class="fg"><label>Category</label>
+      <select id="txnCat">
+        <option value="🛒">🛒 Shopping</option><option value="🍔">🍔 Food & Dining</option>
+        <option value="⛽">⛽ Transport</option><option value="🎬">🎬 Entertainment</option>
+        <option value="🏥">🏥 Health</option><option value="💡">💡 Utilities</option>
+        <option value="✈️">✈️ Travel</option><option value="🎓">🎓 Education</option>
+        <option value="💳">💳 Transfer</option><option value="💰">💰 Income</option>
+        <option value="🏠">🏠 Housing</option><option value="📱">📱 Subscriptions</option>
       </select>
     </div>
     <div class="modal-btns">
-      <button class="btn-outline" onclick="closeTxnModal()">Cancel</button>
-      <button class="btn-generate" onclick="addTransaction()">Add</button>
+      <button class="btn-sec" onclick="closeTxnModal()">Cancel</button>
+      <button class="btn-primary" onclick="addTxn()">Add</button>
     </div>
   </div>
 </div>
 
-<script>
-let currentType  = 'DEBIT';
-let currentTheme = 'violet';
-let isFlipped    = false;
+<div class="toast" id="toast"></div>
+<canvas id="confetti-canvas"></canvas>
 
-const defaultTxns = [
-  { icon:'🛒', merchant:'Amazon',        amount:-129.99, date:'Jun 27', color:'#f87171' },
-  { icon:'🍔', merchant:'Shake Shack',   amount:-24.50,  date:'Jun 26', color:'#f87171' },
-  { icon:'💰', merchant:'Payroll Deposit',amount:3200.00,date:'Jun 25', color:'#34d399' },
-  { icon:'⛽', merchant:'Shell Gas',      amount:-62.00,  date:'Jun 24', color:'#f87171' },
-  { icon:'🎬', merchant:'Netflix',        amount:-15.99,  date:'Jun 22', color:'#f87171' },
+<script>
+// ══════════════ STATE ══════════════
+let currentType='DEBIT', currentTheme='violet', isFlipped=false, isFrozen=false, numberMasked=false;
+let imgDataURL=null;
+let anims={stars:true,particle:true,twinkle:true,matrix:false,firefly:false,snow:false,tilt:true,holo:false,glitter:false,aurora:false,pulse:false,rippleAuto:false};
+let savedCards=JSON.parse(localStorage.getItem('nx_cards')||'[]');
+let transactions=JSON.parse(localStorage.getItem('nx_txns')||'null')||[
+  {icon:'🛒',merchant:'Amazon',amount:-129.99,date:'Jun 27',color:'#f87171'},
+  {icon:'🍔',merchant:'Shake Shack',amount:-24.50,date:'Jun 26',color:'#f87171'},
+  {icon:'💰',merchant:'Payroll',amount:3200.00,date:'Jun 25',color:'#34d399'},
+  {icon:'⛽',merchant:'Shell Gas',amount:-62.00,date:'Jun 24',color:'#f87171'},
+  {icon:'🎬',merchant:'Netflix',amount:-15.99,date:'Jun 22',color:'#f87171'},
+  {icon:'✈️',merchant:'Delta Airlines',amount:-540.00,date:'Jun 20',color:'#f87171'},
 ];
 
-let transactions = [...defaultTxns];
-
-function fmt(val, sym) {
-  return sym + Number(val).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+// ══════════════ DRAWER ══════════════
+function openDrawer(){
+  document.getElementById('settingsDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('settingsDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+function switchTab(name,btn){
+  document.querySelectorAll('.stab-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  btn.classList.add('on');
 }
 
-function renderTxns() {
-  const list = document.getElementById('txnList');
-  const sym  = document.getElementById('currency').value;
-  list.innerHTML = '';
-  transactions.slice().reverse().forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'txn-item';
-    el.innerHTML = `
-      <div class="txn-icon" style="background:${t.amount<0?'rgba(248,113,113,0.12)':'rgba(52,211,153,0.12)'}">${t.icon}</div>
-      <div class="txn-info">
-        <div class="txn-merchant">${t.merchant}</div>
-        <div class="txn-date">${t.date}</div>
-      </div>
-      <div class="txn-amount" style="color:${t.color}">${t.amount<0?'-':'+'} ${sym}${Math.abs(t.amount).toFixed(2)}</div>
-    `;
+// ══════════════ CANVAS ANIMS ══════════════
+const CVIDS=['canvasFront','canvasBack'];
+const ctx={},stars={},particles={},shooters={},fireflies={},snowflakes={},matrixCols={};
+
+function rnd(n){return Math.random()*n}
+function initCanvas(id){
+  const c=document.getElementById(id);if(!c)return;
+  const face=c.closest('.card-face');
+  c.width=face.offsetWidth||480;c.height=face.offsetHeight||293;
+  ctx[id]=c.getContext('2d');
+  stars[id]=Array.from({length:80},()=>({x:rnd(c.width),y:rnd(c.height),r:Math.random()*.75+.15,a:Math.random(),s:Math.random()*.013+.004}));
+  particles[id]=Array.from({length:22},()=>({x:rnd(c.width),y:rnd(c.height),vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*1.5+.4,a:Math.random()*.45+.1}));
+  fireflies[id]=Array.from({length:14},()=>({x:rnd(c.width),y:rnd(c.height),vx:(Math.random()-.5)*.55,vy:(Math.random()-.5)*.55,a:0,da:.018,max:Math.random()*.7+.3}));
+  snowflakes[id]=Array.from({length:35},()=>({x:rnd(c.width),y:Math.random()*c.height,s:Math.random()*1.6+.5,v:Math.random()*.9+.3,d:Math.random()*.4-.2}));
+  shooters[id]=[];
+  const cols=Math.floor(c.width/14);
+  matrixCols[id]=Array.from({length:cols},()=>Math.random()*c.height);
+}
+function spawnShooter(id){
+  const c=document.getElementById(id);if(!c)return;
+  shooters[id].push({x:rnd(c.width*.5),y:rnd(c.height*.4),vx:Math.random()*3.5+2.5,vy:Math.random()*1.8+.6,len:Math.random()*80+40,a:1,w:Math.random()*.8+.25});
+}
+function drawCanvas(id){
+  const c=document.getElementById(id);if(!c||!ctx[id])return;
+  const cx=ctx[id];
+  cx.clearRect(0,0,c.width,c.height);
+  // twinkle
+  if(anims.twinkle){
+    stars[id].forEach(s=>{
+      s.a+=s.s;if(s.a>1||s.a<0)s.s*=-1;
+      cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      cx.fillStyle=`rgba(255,255,255,${Math.abs(s.a)})`;cx.fill();
+    });
+  }
+  // shooting stars
+  if(anims.stars){
+    if(Math.random()<.008)spawnShooter(id);
+    shooters[id]=shooters[id].filter(s=>s.a>0);
+    shooters[id].forEach(s=>{
+      const g=cx.createLinearGradient(s.x,s.y,s.x-s.len,s.y-s.len*.4);
+      g.addColorStop(0,`rgba(255,255,255,${s.a})`);g.addColorStop(1,'rgba(255,255,255,0)');
+      cx.beginPath();cx.moveTo(s.x,s.y);cx.lineTo(s.x-s.len,s.y-s.len*.4);
+      cx.strokeStyle=g;cx.lineWidth=s.w;cx.stroke();
+      s.x+=s.vx;s.y+=s.vy;s.a-=.019;
+    });
+  }
+  // particles
+  if(anims.particle){
+    particles[id].forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>c.width)p.vx*=-1;
+      if(p.y<0||p.y>c.height)p.vy*=-1;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle=`rgba(180,150,255,${p.a})`;cx.fill();
+    });
+  }
+  // fireflies
+  if(anims.firefly){
+    fireflies[id].forEach(f=>{
+      f.x+=f.vx;f.y+=f.vy;f.a+=f.da;
+      if(f.a>=f.max||f.a<=0)f.da*=-1;
+      if(f.x<0||f.x>c.width)f.vx*=-1;
+      if(f.y<0||f.y>c.height)f.vy*=-1;
+      const g2=cx.createRadialGradient(f.x,f.y,0,f.x,f.y,7);
+      g2.addColorStop(0,`rgba(190,255,90,${Math.max(0,f.a)})`);g2.addColorStop(1,'rgba(190,255,90,0)');
+      cx.beginPath();cx.arc(f.x,f.y,6,0,Math.PI*2);cx.fillStyle=g2;cx.fill();
+    });
+  }
+  // snow
+  if(anims.snow){
+    cx.fillStyle='rgba(255,255,255,.8)';
+    snowflakes[id].forEach(sf=>{
+      sf.y+=sf.v;sf.x+=sf.d;
+      if(sf.y>c.height){sf.y=0;sf.x=rnd(c.width);}
+      if(sf.x<0)sf.x=c.width;if(sf.x>c.width)sf.x=0;
+      cx.beginPath();cx.arc(sf.x,sf.y,sf.s,0,Math.PI*2);cx.fill();
+    });
+  }
+  // matrix
+  if(anims.matrix){
+    cx.fillStyle='rgba(0,0,0,.055)';cx.fillRect(0,0,c.width,c.height);
+    cx.fillStyle='rgba(0,255,80,.55)';cx.font='11px Inconsolata';
+    matrixCols[id].forEach((y,i)=>{
+      const ch=String.fromCharCode(0x30A0+Math.random()*96);
+      cx.fillText(ch,i*14,y);
+      matrixCols[id][i]=y>c.height&&Math.random()>.975?0:y+14;
+    });
+  }
+}
+function animLoop(){CVIDS.forEach(id=>drawCanvas(id));requestAnimationFrame(animLoop);}
+
+// auto ripple
+let rippleTimer=null;
+function startAutoRipple(){if(rippleTimer)return;rippleTimer=setInterval(()=>{if(anims.rippleAuto)doRipple();},2200);}
+function stopAutoRipple(){clearInterval(rippleTimer);rippleTimer=null;}
+
+// ══════════════ 3D TILT ══════════════
+const scene=document.getElementById('cardScene');
+const tiltLight=document.getElementById('tiltLight');
+scene.addEventListener('mousemove',e=>{
+  if(!anims.tilt)return;
+  const r=scene.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  const rx=(y-.5)*22,ry=(.5-x)*22;
+  const inner=document.getElementById('cardInner');
+  inner.style.transition='transform .1s';
+  inner.style.transform=isFlipped?`rotateY(180deg) rotateX(${-rx}deg) rotateY(${-ry}deg)`:`rotateX(${rx}deg) rotateY(${ry}deg)`;
+  tiltLight.style.setProperty('--mx',(x*100)+'%');
+  tiltLight.style.setProperty('--my',(y*100)+'%');
+  tiltLight.style.opacity='.9';
+});
+scene.addEventListener('mouseleave',()=>{
+  const inner=document.getElementById('cardInner');
+  inner.style.transition='transform .8s cubic-bezier(.4,0,.2,1)';
+  inner.style.transform=isFlipped?'rotateY(180deg)':'';
+  tiltLight.style.opacity='0';
+});
+scene.addEventListener('click',e=>{if(e.target.classList.contains('mask-eye'))return;flipCard();});
+
+// ══════════════ RIPPLE ══════════════
+function doRipple(){
+  const layer=document.getElementById('rippleFront');if(!layer)return;
+  layer.style.display='block';
+  if(!document.getElementById('rippleKF')){
+    const s=document.createElement('style');s.id='rippleKF';
+    s.textContent='@keyframes ripOut{to{transform:scale(7);opacity:0}}';
+    document.head.appendChild(s);
+  }
+  const d=document.createElement('div');
+  d.style.cssText=`position:absolute;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);transform:scale(0);animation:ripOut .9s ease-out forwards;width:55px;height:55px;left:${25+Math.random()*55}%;top:${20+Math.random()*60}%`;
+  layer.appendChild(d);setTimeout(()=>d.remove(),900);
+}
+
+// ══════════════ BG IMAGE ══════════════
+function handleImgUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>4*1024*1024){toast('⚠️ Image too large (max 4MB)');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    imgDataURL=ev.target.result;
+    document.getElementById('imgPreview').src=imgDataURL;
+    document.getElementById('imgControls').style.display='flex';
+    applyBgImg();
+    toast('🖼 Background image applied!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyBgImg(){
+  if(!imgDataURL)return;
+  const tint=document.getElementById('tintSlider').value;
+  const pos=document.getElementById('bgPosition').value;
+  const size=document.getElementById('bgSize').value;
+  const front=document.getElementById('cardFront');
+  const back=document.getElementById('cardBack');
+  // Apply as background on both faces
+  [front,back].forEach(face=>{
+    face.style.backgroundImage=`url('${imgDataURL}')`;
+    face.style.backgroundSize=size;
+    face.style.backgroundPosition=pos;
+    face.style.backgroundRepeat='no-repeat';
+    face.classList.add('has-bg-img');
+  });
+  // tint overlay
+  const tintColor=`rgba(0,0,0,${tint/100})`;
+  document.getElementById('bgTint').style.background=tintColor;
+  document.getElementById('bgTintBack').style.background=tintColor;
+  document.getElementById('bgTint').style.display='block';
+  document.getElementById('bgTintBack').style.display='block';
+}
+
+function removeImg(){
+  imgDataURL=null;
+  const front=document.getElementById('cardFront');
+  const back=document.getElementById('cardBack');
+  [front,back].forEach(face=>{
+    face.style.backgroundImage='';face.classList.remove('has-bg-img');
+  });
+  document.getElementById('bgTint').style.display='none';
+  document.getElementById('bgTintBack').style.display='none';
+  document.getElementById('imgControls').style.display='none';
+  document.getElementById('imgUpload').value='';
+  toast('🗑 Background removed');
+}
+
+// ══════════════ THEME ══════════════
+const ALL_THEMES=['violet','ocean','gold','rose','slate','emerald','midnight','crimson','sunset','neon','galaxy','arctic','copper','holo','sakura','forest','plasma','ice'];
+function setTheme(t,el){
+  currentTheme=t;
+  document.querySelectorAll('.td').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel');
+  ['cardFront','cardBack'].forEach(id=>{
+    const f=document.getElementById(id);
+    ALL_THEMES.forEach(th=>f.classList.remove('t-'+th));
+    f.classList.add('t-'+t);
+  });
+  document.getElementById('cardFront').classList.toggle('anim-pulse',anims.pulse&&t==='neon');
+  updateOverlays();
+  // reapply bg img if set (it clears background-image when we switch theme otherwise it's fine since class adds gradient)
+  if(imgDataURL)applyBgImg();
+}
+
+function updateOverlays(){
+  const sh=anims.holo||currentTheme==='holo';
+  ['holoFront','holoBack'].forEach(id=>document.getElementById(id).style.display=sh?'block':'none');
+  ['glitterFront','glitterBack'].forEach(id=>document.getElementById(id).style.display=anims.glitter?'block':'none');
+  ['auroraFront','auroraBack'].forEach(id=>document.getElementById(id).style.display=anims.aurora?'block':'none');
+}
+
+function toggleAnim(key){
+  anims[key]=!anims[key];
+  const map={stars:'aStar',particle:'aParticle',twinkle:'aTwinkle',matrix:'aMatrix',firefly:'aFirefly',snow:'aSnow',tilt:'aTilt',holo:'aHolo',glitter:'aGlitter',aurora:'aAurora',pulse:'aPulse',rippleAuto:'aRipple'};
+  const btn=document.getElementById(map[key]);
+  if(btn)btn.classList.toggle('on',anims[key]);
+  if(key==='rippleAuto'){anims.rippleAuto?startAutoRipple():stopAutoRipple();}
+  if(key==='pulse')document.getElementById('cardFront').classList.toggle('anim-pulse',anims.pulse&&currentTheme==='neon');
+  updateOverlays();
+}
+
+// ══════════════ CARD ══════════════
+function setType(t){
+  currentType=t;
+  document.getElementById('btnDebit').classList.toggle('active',t==='DEBIT');
+  document.getElementById('btnCredit').classList.toggle('active',t==='CREDIT');
+  updateCard();
+}
+function toggleMask(e){e.stopPropagation();numberMasked=!numberMasked;renderNum();}
+function renderNum(){
+  const raw=document.getElementById('cardNumber').value;
+  const parts=raw.replace(/\s/g,'').match(/.{1,4}/g)||['••••','••••','••••','••••'];
+  const masked=parts.map((p,i)=>i<3&&numberMasked?'••••':p);
+  document.getElementById('prevNum').innerHTML=masked.map(p=>`<span>${p}</span>`).join('')+`<span class="mask-eye" onclick="toggleMask(event)">${numberMasked?'🔒':'👁'}</span>`;
+}
+function netHTML(n){
+  if(n==='visa')return`<span class="visa-logo">VISA</span>`;
+  if(n==='mastercard')return`<div class="net-wrap"><div class="mc-c mc-l"></div><div class="mc-c mc-r"></div></div>`;
+  if(n==='amex')return`<span class="amex-logo">AMEX</span>`;
+  if(n==='discover')return`<span class="disc-logo">DISCOVER</span>`;
+  if(n==='unionpay')return`<span class="up-logo">UnionPay</span>`;
+  if(n==='rupay')return`<span class="rupay-logo">RuPay</span>`;
+  return'';
+}
+function updateCard(){
+  const bank=(document.getElementById('bankName').value||'NEXUS BANK').toUpperCase();
+  const name=(document.getElementById('holderName').value||'CARDHOLDER').toUpperCase();
+  const expiry=document.getElementById('expiry').value||'00/00';
+  const cvv=document.getElementById('cvv').value||'•••';
+  const tier=document.getElementById('tier').value;
+  const net=document.getElementById('network').value;
+  const showChip=document.getElementById('showChip').value==='yes';
+  renderNum();
+  document.getElementById('prevName').textContent=name.substring(0,22);
+  document.getElementById('prevExpiry').textContent=expiry;
+  document.getElementById('prevCVV').textContent=cvv;
+  document.getElementById('prevBank').textContent=bank.substring(0,18);
+  document.getElementById('prevType').textContent=currentType;
+  document.getElementById('prevTier').textContent=tier;
+  document.getElementById('prevBankBack').textContent=bank+' • MEMBER FDIC';
+  document.getElementById('prevNet').innerHTML=netHTML(net);
+  document.getElementById('prevNetBack').innerHTML=netHTML(net);
+  document.getElementById('chipEl').className=showChip?'chip':'chip no-chip';
+  const raw=document.getElementById('cardNumber').value.replace(/\s/g,'');
+  document.getElementById('acctHint').textContent='Acct: ••••'+(raw.slice(-4)||'0000');
+}
+function formatNumber(){
+  let v=document.getElementById('cardNumber').value.replace(/\D/g,'').substring(0,16);
+  document.getElementById('cardNumber').value=v.match(/.{1,4}/g)?.join(' ')||v;
+  updateCard();
+}
+function formatExpiry(){
+  let v=document.getElementById('expiry').value.replace(/\D/g,'').substring(0,4);
+  if(v.length>=3)v=v.substring(0,2)+'/'+v.substring(2);
+  document.getElementById('expiry').value=v;updateCard();
+}
+function flipCard(){
+  isFlipped=!isFlipped;
+  const inner=document.getElementById('cardInner');
+  inner.style.transition='transform .8s cubic-bezier(.4,0,.2,1)';
+  inner.style.transform=isFlipped?'rotateY(180deg)':'';
+}
+function toggleFreeze(){
+  isFrozen=!isFrozen;
+  document.getElementById('freezeOv').classList.toggle('on',isFrozen);
+  document.getElementById('cardStatus').value=isFrozen?'frozen':'active';
+  updateStatus();
+  toast(isFrozen?'❄️ Card frozen':'✅ Card unfrozen');
+}
+function updateStatus(){
+  const v=document.getElementById('cardStatus').value;
+  isFrozen=v==='frozen';
+  document.getElementById('freezeOv').classList.toggle('on',isFrozen);
+  const chip=document.getElementById('statusChip');
+  chip.className='status-chip';
+  if(v==='active'){chip.classList.add('sc-active');chip.textContent='● ACTIVE';}
+  if(v==='frozen'){chip.classList.add('sc-frozen');chip.textContent='❄ FROZEN';}
+  if(v==='blocked'){chip.classList.add('sc-blocked');chip.textContent='✖ BLOCKED';}
+}
+
+// ══════════════ BALANCE ══════════════
+function fmt(v,sym){return sym+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function updateBalance(){
+  const sym=document.getElementById('currency').value;
+  const bal=parseFloat(document.getElementById('balSlider').value);
+  const limit=parseFloat(document.getElementById('limitSlider').value);
+  const pts=parseInt(document.getElementById('rewardsPts').value)||0;
+  const apr=parseFloat(document.getElementById('aprRate').value)||0;
+  const cbR=parseFloat(document.getElementById('cashbackRate').value)||1.15;
+  const pend=Math.round(bal*.05*100)/100;
+  const avail=Math.round((bal-pend)*100)/100;
+  const spPct=Math.min(100,Math.round((bal/limit)*100));
+  const cb=Math.round(bal*(cbR/100)*100)/100;
+  document.getElementById('balDisplay').textContent=fmt(bal,sym);
+  document.getElementById('limitDisplay').textContent=fmt(limit,sym);
+  document.getElementById('balSym').textContent=sym;
+  document.getElementById('balNum').textContent=bal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('bAvail').textContent=fmt(avail,sym);
+  document.getElementById('bPend').textContent=fmt(pend,sym);
+  document.getElementById('bLimit').textContent=fmt(limit,sym);
+  document.getElementById('bPts').textContent=pts.toLocaleString();
+  document.getElementById('bCashback').textContent=fmt(cb,sym);
+  document.getElementById('bAPR').textContent=apr.toFixed(2)+'%';
+  document.getElementById('spPct').textContent=spPct+'%';
+  document.getElementById('spBar').style.width=spPct+'%';
+}
+
+// ══════════════ TRANSACTIONS ══════════════
+function renderTxns(){
+  const list=document.getElementById('txnList');
+  const sym=document.getElementById('currency').value;
+  list.innerHTML='';
+  if(!transactions.length){list.innerHTML='<div class="empty-msg">No transactions yet</div>';return;}
+  transactions.slice().reverse().forEach((t,ri)=>{
+    const i=transactions.length-1-ri;
+    const el=document.createElement('div');el.className='txn-item';
+    el.innerHTML=`<div class="txn-ico" style="background:${t.amount<0?'rgba(248,113,113,.12)':'rgba(52,211,153,.12)'}">${t.icon}</div>
+      <div class="txn-inf"><div class="txn-mer">${t.merchant}</div><div class="txn-dt">${t.date}</div></div>
+      <div class="txn-amt" style="color:${t.color}">${t.amount<0?'−':'+'}${sym}${Math.abs(t.amount).toFixed(2)}</div>
+      <span class="txn-rm" onclick="removeTxn(${i})">✕</span>`;
     list.appendChild(el);
   });
+  localStorage.setItem('nx_txns',JSON.stringify(transactions));
+}
+function removeTxn(i){transactions.splice(i,1);renderTxns();toast('Transaction removed')}
+function openTxnModal(){document.getElementById('txnModal').classList.add('open')}
+function closeTxnModal(){document.getElementById('txnModal').classList.remove('open')}
+function addTxn(){
+  const mer=document.getElementById('txnMer').value.trim()||'Unknown';
+  const raw=parseFloat(document.getElementById('txnAmt').value)||0;
+  const dir=document.getElementById('txnDir').value;
+  const ico=document.getElementById('txnCat').value;
+  const amt=dir==='debit'?-Math.abs(raw):Math.abs(raw);
+  const color=amt<0?'#f87171':'#34d399';
+  const date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  transactions.push({icon:ico,merchant:mer,amount:amt,date,color});
+  renderTxns();closeTxnModal();
+  document.getElementById('txnMer').value='';document.getElementById('txnAmt').value='';
+  toast('✅ Transaction added');
+}
+document.getElementById('txnModal').addEventListener('click',function(e){if(e.target===this)closeTxnModal()});
+
+// ══════════════ SAVE / LOAD ══════════════
+function getState(){
+  return{type:currentType,theme:currentTheme,
+    bank:document.getElementById('bankName').value,
+    name:document.getElementById('holderName').value,
+    number:document.getElementById('cardNumber').value,
+    expiry:document.getElementById('expiry').value,
+    cvv:document.getElementById('cvv').value,
+    pin:document.getElementById('pin').value,
+    tier:document.getElementById('tier').value,
+    network:document.getElementById('network').value,
+    nickname:document.getElementById('nickname').value,
+    bal:document.getElementById('balSlider').value,
+    limit:document.getElementById('limitSlider').value,
+    currency:document.getElementById('currency').value,
+    pts:document.getElementById('rewardsPts').value,
+    apr:document.getElementById('aprRate').value,
+    cbRate:document.getElementById('cashbackRate').value,
+    status:document.getElementById('cardStatus').value,
+    showChip:document.getElementById('showChip').value,
+    imgDataURL,tint:document.getElementById('tintSlider').value,
+    bgPos:document.getElementById('bgPosition').value,
+    bgSize:document.getElementById('bgSize').value
+  };
+}
+function loadState(s){
+  setType(s.type||'DEBIT');
+  ['bankName','holderName','cardNumber','expiry','cvv','pin','nickname'].forEach(id=>{
+    if(s[{bankName:'bank',holderName:'name',cardNumber:'number',expiry:'expiry',cvv:'cvv',pin:'pin',nickname:'nickname'}[id]]!==undefined)
+      document.getElementById(id).value=s[{bankName:'bank',holderName:'name',cardNumber:'number',expiry:'expiry',cvv:'cvv',pin:'pin',nickname:'nickname'}[id]]||'';
+  });
+  document.getElementById('tier').value=s.tier||'PLATINUM';
+  document.getElementById('network').value=s.network||'visa';
+  document.getElementById('balSlider').value=s.bal||0;
+  document.getElementById('limitSlider').value=s.limit||15000;
+  document.getElementById('currency').value=s.currency||'$';
+  document.getElementById('rewardsPts').value=s.pts||0;
+  document.getElementById('aprRate').value=s.apr||19.99;
+  document.getElementById('cashbackRate').value=s.cbRate||1.15;
+  document.getElementById('cardStatus').value=s.status||'active';
+  document.getElementById('showChip').value=s.showChip||'yes';
+  if(s.imgDataURL){
+    imgDataURL=s.imgDataURL;
+    document.getElementById('imgPreview').src=imgDataURL;
+    document.getElementById('imgControls').style.display='flex';
+    document.getElementById('tintSlider').value=s.tint||42;
+    document.getElementById('bgPosition').value=s.bgPos||'center';
+    document.getElementById('bgSize').value=s.bgSize||'cover';
+    applyBgImg();
+  }else{imgDataURL=null;removeImg();}
+  const dot=document.querySelector('.td-'+(s.theme||'violet'));
+  if(dot)setTheme(s.theme||'violet',dot);
+  updateCard();updateBalance();updateStatus();
+}
+function saveCard(){
+  savedCards.push(getState());
+  localStorage.setItem('nx_cards',JSON.stringify(savedCards));
+  renderSaved();launchConfetti();toast('💾 Card saved!');
+}
+function renderSaved(){
+  const grid=document.getElementById('savedGrid');
+  document.getElementById('savedCount').textContent=savedCards.length+' saved';
+  grid.innerHTML='';
+  if(!savedCards.length){grid.innerHTML='<div class="empty-msg">No cards saved yet</div>';return;}
+  savedCards.forEach((c,i)=>{
+    const item=document.createElement('div');item.className='saved-item';
+    const netMini={visa:'VISA',mastercard:'MC',amex:'AMEX',discover:'DISC',unionpay:'UP',rupay:'RP'}[c.network]||'';
+    item.innerHTML=`<div class="saved-mini t-${c.theme}" style="display:flex;align-items:center;justify-content:center"><span style="font-size:.42rem;color:rgba(255,255,255,.85);font-weight:700">${netMini}</span></div>
+      <div class="saved-inf"><div class="saved-nm">${c.nickname||c.bank||'Card'}</div><div class="saved-sub">•••• ${(c.number||'').replace(/\s/g,'').slice(-4)||'0000'} · ${c.type}</div></div>
+      <span class="saved-del" onclick="delSaved(event,${i})">✕</span>`;
+    item.addEventListener('click',e=>{if(e.target.classList.contains('saved-del'))return;loadState(c);toast('📂 Card loaded');});
+    grid.appendChild(item);
+  });
+}
+function delSaved(e,i){e.stopPropagation();savedCards.splice(i,1);localStorage.setItem('nx_cards',JSON.stringify(savedCards));renderSaved();toast('🗑 Deleted')}
+
+// ══════════════ RESET ══════════════
+function resetCard(){
+  if(!confirm('Reset card?'))return;
+  document.getElementById('bankName').value='NEXUS BANK';
+  document.getElementById('holderName').value='JOHN DOE';
+  document.getElementById('cardNumber').value='1234 5678 9012 3456';
+  document.getElementById('expiry').value='12/28';
+  document.getElementById('cvv').value='737';
+  document.getElementById('pin').value='4821';
+  document.getElementById('nickname').value='';
+  document.getElementById('tier').value='PLATINUM';
+  document.getElementById('network').value='visa';
+  document.getElementById('balSlider').value=12450;
+  document.getElementById('limitSlider').value=15000;
+  document.getElementById('rewardsPts').value=48320;
+  document.getElementById('aprRate').value=19.99;
+  document.getElementById('cashbackRate').value=1.15;
+  document.getElementById('currency').value='$';
+  document.getElementById('cardStatus').value='active';
+  document.getElementById('showChip').value='yes';
+  removeImg();
+  setType('DEBIT');
+  const dot=document.querySelector('.td-violet');
+  setTheme('violet',dot);
+  updateCard();updateBalance();updateStatus();
+  toast('♻️ Card reset');
+}
+function copyNum(){
+  navigator.clipboard.writeText(document.getElementById('cardNumber').value.replace(/\s/g,'')).then(()=>toast('📋 Number copied!'));
 }
 
-function openTxnModal()  { document.getElementById('txnModal').classList.add('open'); }
-function closeTxnModal() { document.getElementById('txnModal').classList.remove('open'); }
-
-function addTransaction() {
-  const merchant = document.getElementById('txnMerchant').value.trim() || 'Unknown';
-  const rawAmt   = parseFloat(document.getElementById('txnAmount').value) || 0;
-  const type     = document.getElementById('txnType').value;
-  const icon     = document.getElementById('txnCategory').value;
-  const amt      = type === 'debit' ? -Math.abs(rawAmt) : Math.abs(rawAmt);
-  const color    = amt < 0 ? '#f87171' : '#34d399';
-  const today    = new Date();
-  const date     = today.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  transactions.push({ icon, merchant, amount: amt, date, color });
-  renderTxns();
-  closeTxnModal();
-  document.getElementById('txnMerchant').value = '';
-  document.getElementById('txnAmount').value   = '';
+// ══════════════ RANDOMIZE ══════════════
+const FN=['James','Sarah','Michael','Emily','David','Jessica','Robert','Ashley','William','Amanda','Daniel','Megan','John','Lauren','Christopher','Stephanie'];
+const LN=['Smith','Johnson','Williams','Jones','Brown','Davis','Miller','Wilson','Moore','Taylor','Anderson','Thomas'];
+const BL=['NEXUS BANK','PINNACLE FCU','SUMMIT BANK','APEX FINANCIAL','VERTEX TRUST','HORIZON BANK','ZENITH CREDIT','NOVA SAVINGS','STELLAR BANK','AURORA BANK'];
+const NL=['visa','mastercard','amex','discover','unionpay','rupay'];
+const THL=['violet','ocean','gold','rose','slate','emerald','midnight','crimson','sunset','neon','galaxy','arctic','copper','holo','sakura','forest','plasma','ice'];
+const TRL=['CLASSIC','GOLD','PLATINUM','BLACK','INFINITE','SIGNATURE','WORLD ELITE'];
+function randomize(){
+  const fn=FN[~~(Math.random()*FN.length)],ln=LN[~~(Math.random()*LN.length)];
+  const bnk=BL[~~(Math.random()*BL.length)],net=NL[~~(Math.random()*NL.length)];
+  const thm=THL[~~(Math.random()*THL.length)],tr=TRL[~~(Math.random()*TRL.length)];
+  let num='';for(let i=0;i<16;i++)num+=~~(Math.random()*10);
+  const expMo=String(~~(Math.random()*12)+1).padStart(2,'0');
+  const expYr=String(26+~~(Math.random()*6));
+  let cvv='';for(let i=0;i<(net==='amex'?4:3);i++)cvv+=~~(Math.random()*10);
+  let pin='';for(let i=0;i<4;i++)pin+=~~(Math.random()*10);
+  document.getElementById('bankName').value=bnk;
+  document.getElementById('holderName').value=`${fn} ${ln}`;
+  document.getElementById('cardNumber').value=num.match(/.{1,4}/g).join(' ');
+  document.getElementById('expiry').value=`${expMo}/${expYr}`;
+  document.getElementById('cvv').value=cvv;document.getElementById('pin').value=pin;
+  document.getElementById('network').value=net;document.getElementById('tier').value=tr;
+  document.getElementById('balSlider').value=~~(Math.random()*80000)+500;
+  document.getElementById('limitSlider').value=~~(Math.random()*100000)+5000;
+  document.getElementById('rewardsPts').value=~~(Math.random()*500000);
+  document.getElementById('aprRate').value=(Math.random()*25+5).toFixed(2);
+  document.getElementById('nickname').value='';
+  const dot=document.querySelector('.td-'+thm);
+  if(dot)setTheme(thm,dot);
+  updateCard();updateBalance();toast('🎲 Randomized!');
 }
 
-function updateBalance() {
-  const sym    = document.getElementById('currency').value;
-  const bal    = parseFloat(document.getElementById('balSlider').value);
-  const limit  = parseFloat(document.getElementById('limitSlider').value);
-  const points = parseInt(document.getElementById('rewardsPoints').value) || 0;
-  const pending= Math.round(bal * 0.05 * 100) / 100;
-  const avail  = Math.round((bal - pending) * 100) / 100;
-  const spendPct = Math.min(100, Math.round((bal / limit) * 100));
-
-  document.getElementById('balDisplay').textContent   = fmt(bal, sym);
-  document.getElementById('limitDisplay').textContent = fmt(limit, sym);
-  document.getElementById('balCurrency').textContent  = sym;
-  document.getElementById('balAmount').textContent    = bal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('balAvailable').textContent = fmt(avail, sym);
-  document.getElementById('balPending').textContent   = fmt(pending, sym);
-  document.getElementById('balLimit').textContent     = fmt(limit, sym);
-  document.getElementById('balPoints').textContent    = points.toLocaleString();
-  document.getElementById('spendPct').textContent     = spendPct + '%';
-  document.getElementById('spendBar').style.width     = spendPct + '%';
-  renderTxns();
+// ══════════════ TOAST ══════════════
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2300);
 }
 
-function setType(type) {
-  currentType = type;
-  document.getElementById('btnDebit').classList.toggle('active', type === 'DEBIT');
-  document.getElementById('btnCredit').classList.toggle('active', type === 'CREDIT');
-  updateCard();
+// ══════════════ CONFETTI ══════════════
+function launchConfetti(){
+  const c=document.getElementById('confetti-canvas');
+  c.style.display='block';c.width=window.innerWidth;c.height=window.innerHeight;
+  const cx2=c.getContext('2d');
+  const pieces=Array.from({length:140},()=>({x:Math.random()*c.width,y:-10,vx:(Math.random()-.5)*4,vy:Math.random()*3+2,color:`hsl(${Math.random()*360},90%,60%)`,r:Math.random()*5+3,rot:Math.random()*360,rv:(Math.random()-.5)*6}));
+  let frame=0;
+  function draw2(){
+    cx2.clearRect(0,0,c.width,c.height);
+    pieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;cx2.save();cx2.translate(p.x,p.y);cx2.rotate(p.rot*Math.PI/180);cx2.fillStyle=p.color;cx2.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx2.restore();});
+    if(++frame<100)requestAnimationFrame(draw2);
+    else{cx2.clearRect(0,0,c.width,c.height);c.style.display='none';}
+  }
+  draw2();
 }
 
-function setTheme(theme, el) {
-  currentTheme = theme;
-  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('cardInner').className = `card-inner theme-${theme}${isFlipped?' flipped':''}`;
-  document.getElementById('cardBack').className  = `card-back theme-${theme}`;
-}
-
-function flipCard() {
-  isFlipped = !isFlipped;
-  document.getElementById('cardInner').className = `card-inner theme-${currentTheme}${isFlipped?' flipped':''}`;
-}
-
-function formatNumber() {
-  let val = document.getElementById('cardNumber').value.replace(/\D/g,'').substring(0,16);
-  document.getElementById('cardNumber').value = val.match(/.{1,4}/g)?.join(' ') || val;
-  updateCard();
-}
-
-function formatExpiry() {
-  let val = document.getElementById('expiry').value.replace(/\D/g,'').substring(0,4);
-  if (val.length >= 3) val = val.substring(0,2)+'/'+val.substring(2);
-  document.getElementById('expiry').value = val;
-  updateCard();
-}
-
-function getNetworkHTML(n) {
-  if (n==='visa')       return `<span class="visa-logo">VISA</span>`;
-  if (n==='mastercard') return `<div class="network-logo"><div class="mc-circle mc-left"></div><div class="mc-circle mc-right"></div></div>`;
-  if (n==='amex')       return `<span class="amex-logo">AMEX</span>`;
-  if (n==='discover')   return `<span style="font-size:.72rem;font-weight:800;color:white;letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,.4)">DISCOVER</span>`;
-  return '';
-}
-
-function updateCard() {
-  const bank    = (document.getElementById('bankName').value   || 'NEXUS BANK').toUpperCase();
-  const name    = (document.getElementById('holderName').value || 'CARDHOLDER').toUpperCase();
-  const number  = document.getElementById('cardNumber').value  || '•••• •••• •••• ••••';
-  const expiry  = document.getElementById('expiry').value      || '00/00';
-  const cvv     = document.getElementById('cvv').value         || '•••';
-  const tier    = document.getElementById('tier').value;
-  const network = document.getElementById('network').value;
-
-  const parts   = number.replace(/\s/g,'').match(/.{1,4}/g) || ['••••','••••','••••','••••'];
-  document.getElementById('previewNumber').innerHTML   = parts.map(p=>`<span>${p}</span>`).join('');
-  document.getElementById('previewName').textContent   = name.substring(0,22);
-  document.getElementById('previewExpiry').textContent = expiry;
-  document.getElementById('previewCVV').textContent    = cvv;
-  document.getElementById('previewBank').textContent   = bank.substring(0,18);
-  document.getElementById('previewType').textContent   = currentType;
-  document.getElementById('previewTier').textContent   = tier;
-  document.getElementById('previewBankBack').textContent = bank + ' • MEMBER FDIC';
-  document.getElementById('previewNetwork').innerHTML      = getNetworkHTML(network);
-  document.getElementById('previewNetworkBack').innerHTML  = getNetworkHTML(network);
-}
-
-// Random data
-const firstNames = ['James','Sarah','Michael','Emily','David','Jessica','Robert','Ashley','William','Amanda','Daniel','Megan','John','Lauren','Christopher','Stephanie'];
-const lastNames  = ['Smith','Johnson','Williams','Jones','Brown','Davis','Miller','Wilson','Moore','Taylor','Anderson','Thomas','Jackson','White','Harris','Martin'];
-const banks      = ['NEXUS BANK','PINNACLE FCU','SUMMIT BANK','APEX FINANCIAL','VERTEX TRUST','HORIZON BANK','ZENITH CREDIT','NOVA SAVINGS'];
-const networks   = ['visa','mastercard','amex','discover'];
-const themes     = ['violet','ocean','gold','rose','slate','emerald','midnight','crimson'];
-const tiers      = ['CLASSIC','GOLD','PLATINUM','BLACK','INFINITE'];
-
-function randomize() {
-  const fn   = firstNames[Math.floor(Math.random()*firstNames.length)];
-  const ln   = lastNames [Math.floor(Math.random()*lastNames.length)];
-  const bank = banks     [Math.floor(Math.random()*banks.length)];
-  const net  = networks  [Math.floor(Math.random()*networks.length)];
-  const thm  = themes    [Math.floor(Math.random()*themes.length)];
-  const tier = tiers     [Math.floor(Math.random()*tiers.length)];
-
-  let num=''; for(let i=0;i<16;i++) num+=Math.floor(Math.random()*10);
-  const expMo = String(Math.floor(Math.random()*12)+1).padStart(2,'0');
-  const expYr = String(26+Math.floor(Math.random()*6));
-  const cvvLen= net==='amex'?4:3;
-  let cvv=''; for(let i=0;i<cvvLen;i++) cvv+=Math.floor(Math.random()*10);
-  let pin=''; for(let i=0;i<4;i++) pin+=Math.floor(Math.random()*10);
-  const bal   = Math.floor(Math.random()*50000)+500;
-  const limit = Math.floor(Math.random()*80000)+5000;
-  const pts   = Math.floor(Math.random()*200000);
-
-  document.getElementById('bankName').value    = bank;
-  document.getElementById('holderName').value  = `${fn} ${ln}`;
-  document.getElementById('cardNumber').value  = num.match(/.{1,4}/g).join(' ');
-  document.getElementById('expiry').value      = `${expMo}/${expYr}`;
-  document.getElementById('cvv').value         = cvv;
-  document.getElementById('pin').value         = pin;
-  document.getElementById('network').value     = net;
-  document.getElementById('tier').value        = tier;
-  document.getElementById('balSlider').value   = bal;
-  document.getElementById('limitSlider').value = limit;
-  document.getElementById('rewardsPoints').value = pts;
-
-  const dot = document.querySelector(`.color-dot.${thm}`);
-  setTheme(thm, dot);
-  updateCard();
-  updateBalance();
-}
-
-// Init
-updateCard();
-updateBalance();
-renderTxns();
-
-// Close modal on overlay click
-document.getElementById('txnModal').addEventListener('click', function(e){
-  if(e.target===this) closeTxnModal();
+// ══════════════ INIT ══════════════
+window.addEventListener('load',()=>{
+  CVIDS.forEach(id=>initCanvas(id));
+  animLoop();
+  updateCard();updateBalance();updateStatus();
+  renderTxns();renderSaved();
+});
+window.addEventListener('resize',()=>{
+  CVIDS.forEach(id=>{
+    const c=document.getElementById(id);if(!c)return;
+    const face=c.closest('.card-face');
+    c.width=face.offsetWidth;c.height=face.offsetHeight;
+  });
 });
 </script>
 </body>
+
 </html>
